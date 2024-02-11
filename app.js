@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", login);
+document.addEventListener("DOMContentLoaded", setup);
 const signin = "https://01.kood.tech/api/auth/signin";
 const graphql = "https://01.kood.tech/api/graphql-engine/v1/graphql";
 function setup() {
@@ -7,8 +7,8 @@ function setup() {
 
 function login(e) {
   e.preventDefault();
-  const u = "antisults";
-  const p = "sultsike123";
+  const u = document.getElementById("username").value;
+  const p = document.getElementById("password").value;
   const base64 = btoa(`${u}:${p}`);
 
   fetch(signin, {
