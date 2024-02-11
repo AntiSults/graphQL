@@ -1,6 +1,65 @@
-#app {
-  height: 100vh;
+body {
   background-color: rgb(247, 247, 234);
+}
+
+button {
+  cursor: pointer;
+}
+
+#container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#login {
+  color: grey;
+  text-align: center;
+  padding: 3em;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  margin-top: 10em;
+  background-color: beige;
+}
+
+#login > h1 {
+  color: grey;
+  margin-bottom: 1em;
+  font-size: large;
+}
+
+#loginbtn {
+  color: grey;
+  background-color: rgb(242, 242, 192);
+  border-radius: 5px;
+  padding: 0.2em;
+}
+
+#login-error {
+  display: block;
+  position: absolute;
+  top: 1em;
+  text-align: center;
+  background-color: rgb(249, 249, 134);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  padding: 2em;
+}
+
+input {
+  color: grey;
+  box-sizing: border-box;
+}
+
+#logout {
+  color: grey;
+  position: absolute;
+  right: 0;
+  margin: 1em;
+  background-color: beige;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 0.35em;
+  border-radius: 5px;
 }
 
 .svg-rect:hover {
@@ -8,11 +67,13 @@
 }
 
 h1 {
+  color: grey;
   margin: 0;
   font-size: 14px;
 }
 
 p {
+  color: grey;
   margin: 0;
 }
 
@@ -28,4 +89,44 @@ p {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 4em;
   background-color: beige;
+}
+
+#charts {
+  display: flex;
+  justify-content: space-around;
+  overflow: auto;
+}
+
+#chart-container,
+#pie-container {
+  padding: 2em;
+  margin: 4em;
+  height: fit-content;
+  width: fit-content;
+}
+
+@media screen and (max-width: 1800px) {
+  #charts {
+    flex-direction: column; /* Stack elements vertically on smaller screens */
+  }
+}
+
+#chart-container {
+  background-color: beige;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  width: max-content;
+}
+
+#pie-container {
+  background-color: beige;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  width: max-content;
+}
+
+#chart-container > h1,
+#pie-container > h1 {
+  text-align: center;
+  margin-bottom: 2em;
 }

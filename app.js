@@ -20,12 +20,34 @@ function login(e) {
   })
     .then((response) => response.json())
     .then((data) => {
+      if (data.error) {
+        failedToSignIn(data.error);
+        return;
+      }
       const token = data;
       localStorage.setItem("jwtToken", token);
-      //JWT token got and stored
       goToProfile();
     })
     .catch((error) => console.log("Error: ", error));
+}
+
+function failedToSignIn(error) {
+  const container = document.getElementById("container");
+  const html = `
+      <h1>Failed to log in!</h1>
+      <p></p>
+  `;
+  const check = document.getElementById("login-error");
+  if (!check) {
+    const errorDiv = document.createElement("div");
+    errorDiv.setAttribute("id", "login-error");
+    errorDiv.innerHTML = html;
+    errorDiv.addEventListener("click", function () {
+      errorDiv.remove();
+    });
+    container.append(errorDiv);
+    document.querySelector("#login-error>p").innerText = error;
+  }
 }
 
 async function goToProfile() {
@@ -34,6 +56,7 @@ async function goToProfile() {
   userInfo = userInfo.user[0];
   const app = document.getElementById("app");
   app.innerHTML = `
+    <button id="logout">Log out</button>
     <div id="userProfile">
       <div id="userId">
           <h1>ID:</h1>
@@ -43,8 +66,16 @@ async function goToProfile() {
           <h1>Username:</h1>
           <p></p>
         </div>
+        <div id="email">
+          <h1>Email:</h1>
+          <p></p>
+        </div>
+        <div id="tel">
+          <h1>Phone number:</h1>
+          <p></p>
+        </div>
         <div id="xp">
-          <h1>XP:</h1>
+          <h1>XP(bytes):</h1>
           <p></p>
         </div>
         <div id="audit-ratio">
@@ -52,15 +83,26 @@ async function goToProfile() {
           <p></p>
         </div>
     </div>
-    <svg id="chart-container"></svg>
-    <svg id="pie"></svg>
+    <div id="charts">
+      <div id="chart-container">
+        <h1>Progress over projects</h1>
+        <svg id="chart"></svg>
+      </div>
+      <div id="pie-container">
+        <h1>Audits done vs received</h1>
+        <svg id="pie"></svg>
+      </div>
+    </div>
   `;
+  document.querySelector("#logout").addEventListener("click", logout);
   document.querySelector("#userId>p").innerText = userInfo.id;
+  document.querySelector("#email>p").innerText = userInfo.email;
+  document.querySelector("#tel>p").innerText = userInfo.tel;
   document.querySelector("#userName>p").innerText = userInfo.login;
   document.querySelector("#xp>p").innerText = xpRatio.xp;
   document.querySelector("#audit-ratio>p").innerText = xpRatio.ratio;
   svgXpByProject();
-  testfunc();
+  getAuditGraph();
 }
 
 async function fetchUserInfo() {
@@ -77,7 +119,9 @@ async function fetchUserInfo() {
       {
         user{
           id,
-          login
+          login,
+          tel: attrs(path: "tel")
+          email: attrs(path: "email")
         }
       }
       `,
@@ -123,9 +167,9 @@ async function fetchXp() {
   await fetch(graphql, options)
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
       data.data.xpTrans.forEach((s) => (xp += s.amount));
-      if (!auditRatio) auditRatio = data.data.xpTrans[0].user.auditRatio;
+      if (!auditRatio)
+        auditRatio = Number(data.data.xpTrans[0].user.auditRatio.toFixed(1));
     })
     .catch((error) => {
       console.error("Error fetching something", error);
@@ -150,9 +194,9 @@ async function svgXpByProject() {
         }) {
           amount,
           createdAt,
-    object{
-      name
-    }
+          object{
+            name
+          }
         }
       }
       `,
@@ -176,13 +220,13 @@ function createSvg(data) {
     return Math.max(maxAmount, entry.amount);
   }, 0);
 
-  const svgW = 1600;
-  const svgH = 300;
-  const margin = { top: 50, bottom: 70, left: 50, right: 50 };
+  const svgW = 1000;
+  const svgH = 800;
+  const margin = { top: 80, bottom: 120, left: 0, right: 0 };
   const barPadding = 10;
 
   const svg = d3
-    .select("#chart-container")
+    .select("#chart")
     .attr("width", svgW - margin.left - margin.right)
     .attr("height", svgH - margin.top - margin.bottom)
     .attr("viewBox", [0, 0, svgW, svgH]);
@@ -230,7 +274,7 @@ function createSvg(data) {
   svg.node();
 }
 
-function testfunc() {
+function getAuditGraph() {
   const token = localStorage.getItem("jwtToken");
   const options = {
     method: "POST",
@@ -242,12 +286,11 @@ function testfunc() {
       query: `
       {
         xpTrans: transaction(where: { 
-           
           path: { _regex: "^(?!.*piscine-js).*johvi/div-01.*" }  
         }) {
     			type,
         }
-}
+      }
       `,
     }),
   };
@@ -257,7 +300,6 @@ function testfunc() {
       const cData = data.data.xpTrans;
       let received = 0;
       let done = 0;
-      console.log("temp", cData);
       cData.forEach((obj) => {
         if (obj.type == "up") {
           done++;
@@ -269,7 +311,6 @@ function testfunc() {
           { type: "recived", amount: received },
         ]);
       });
-      console.log(received, done);
     })
     .catch((error) => {
       console.error("Error fetching something", error);
@@ -277,15 +318,14 @@ function testfunc() {
 }
 
 function createPie(obj) {
-  console.log(obj);
-  const svgW = 400,
-    svgH = 400,
+  const svgW = 500,
+    svgH = 300,
     radius = Math.min(svgW, svgH) / 2;
   let svg = d3.select("#pie").attr("width", svgW).attr("height", svgH);
   let g = svg
     .append("g")
     .attr("transform", "translate(" + radius + "," + radius + ")");
-  let color = d3.scaleOrdinal(d3.schemeCategory10);
+  let color = d3.scaleOrdinal(d3.schemePastel2);
   var pie = d3.pie().value(function (d) {
     return d.amount;
   });
@@ -308,36 +348,57 @@ function createPie(obj) {
       return d.data.amount;
     });
 
-  const legend = svg
-    .selectAll(".legend")
-    .data(obj.map((d) => d.type)) // Use obj data for legend
+  const legends = svg
+    .append("g")
+    .attr("transform", "translate(350, 200)")
+    .selectAll(".legends")
+    .data(obj);
+  var legend = legends
     .enter()
     .append("g")
-    .attr("class", "legend")
+    .classed("legends", true)
     .attr("transform", function (d, i) {
-      return "translate(" + (svgW - 100) + "," + (i * 20 + 20) + ")";
+      return "translate(0, " + (i + 1) * 30 + ")";
     });
-
   legend
     .append("rect")
-    .attr("width", 18)
-    .attr("height", 18)
-    .style("fill", function (d) {
-      return color(obj.find((item) => item.type === d).amount);
+    .attr("width", 20)
+    .attr("height", 20)
+    .attr("fill", function (d) {
+      return color(d.amount);
     });
-
   legend
     .append("text")
-    .attr("x", 24)
-    .attr("y", 9)
-    .attr("dy", ".35em")
-    .style("text-anchor", "start")
     .text(function (d) {
-      return d;
-    });
+      return d.type;
+    })
+    .attr("fill", function (d) {
+      return color(d.amount);
+    })
+    .attr("x", 30)
+    .attr("y", 15);
 }
 
 function getUserIdFromToken(token) {
   let parts = token.split(".");
   return JSON.parse(atob(parts[1])).sub;
+}
+
+function logout() {
+  localStorage.removeItem("jwtToken");
+  document.querySelector("#app").innerHTML = `
+    <div id="container">
+        <div id="login">
+          <h1>Log in to see your information</h1>
+          <form action="#">
+            <label for="username">Username or email</label>
+            <input type="text" id="username" />
+            <label for="password">Password</label>
+            <input type="password" id="password" />
+            <button id="loginbtn">Log in</button>
+          </form>
+        </div>
+      </div>
+  `;
+  setup();
 }
