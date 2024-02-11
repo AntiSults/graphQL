@@ -1,0 +1,31 @@
+#app {
+  height: 100vh;
+  background-color: rgb(247, 247, 234);
+}
+
+.svg-rect:hover {
+  opacity: 0.66;
+}
+
+h1 {
+  margin: 0;
+  font-size: 14px;
+}
+
+p {
+  margin: 0;
+}
+
+#userProfile {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#userProfile > * {
+  padding: 1.5em;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 4em;
+  background-color: beige;
+}
