@@ -85,7 +85,7 @@ async function goToProfile() {
     </div>
     <div id="charts">
       <div id="chart-container">
-        <h1>Progress over projects</h1>
+        <h1>XP progress over projects</h1>
         <svg id="chart"></svg>
       </div>
       <div id="pie-container">
@@ -308,7 +308,7 @@ function getAuditGraph() {
         }
         createPie([
           { type: "done", amount: done },
-          { type: "recived", amount: received },
+          { type: "received", amount: received },
         ]);
       });
     })
